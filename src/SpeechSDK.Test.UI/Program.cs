@@ -14,10 +14,10 @@ namespace SpeechSDK.Test.UI
         [STAThread]
         static void Main()
         {
-            new Class1().Teste();
+            //new PreparadorAudio().Teste();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrmTest());
+            Application.Run(new FrmAudioPloter());
         }
     }
 }
