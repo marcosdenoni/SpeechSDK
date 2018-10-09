@@ -17,8 +17,8 @@ namespace SpeechSDK.Test.UI
             //new PreparadorAudio().Teste();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new FrmAudioPloter());
-            Application.Run(new FrmTest());
+            Application.Run(new FrmAudioPloter());
+            //Application.Run(new FrmTest());
         }
     }
 }

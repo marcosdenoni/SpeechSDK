@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -22,6 +23,8 @@ namespace SpeechSDK.Test.UI
 
         private void btnAnalizar_Click(object sender, EventArgs e)
         {
+            GerarBitmap();
+
             using (var processador = new PreparadorAudio(txtArquivo.Text))
             {
                 using (var signal = processador.ObterSinal())
@@ -51,12 +54,49 @@ namespace SpeechSDK.Test.UI
                     //Complex[] channel = complexSignal.GetChannel(0);
 
 
-                    processador.ObterAudioFiltrado();
+                    //processador.ObterAudioFiltrado();
+
+                    //float[] testValues = signal.ToFloat().Take(128).ToArray();
+
+                    //// fill data series
+                    //for (int i = 0; i < 128; i++)
+                    //{
+                    //    testValues[i] = (float)Math.Sin(i / 18.0 * Math.PI);
+
+                    //}
+                    //// add new waveform to the chart
+                    //chart.AddWaveform("Test", Color.DarkGreen, 3);
+                    //// update the chart
+                    //chart.UpdateWaveform("Test", testValues);
+
+                    WavechartBox.Show(signal.ToFloat(), "teste");
+                    var teste = processador.ObterAudioFiltrado();
+
+                    var valores = teste.Select(v => (float)v.Item2.Average()).ToArray();
+                    WavechartBox.Show(valores, "teste2");
 
 
-                    chart.AddWaveform("fft", Color.Green, 5);
-                    chart.UpdateWaveform("fft", signal.ToFloat().Take(200).ToArray());
+
+                    //chart.AddWaveform("fft", Color.Green, 5);
+                    //chart.UpdateWaveform("fft", signal.ToFloat().Take(200).ToArray());
                 }
+            }
+        }
+
+
+        private void GerarBitmap()
+        {
+            using (var processador = new PreparadorAudio(txtArquivo.Text))
+            using (var signal = processador.ObterSinal())
+            {
+
+                //var signalArray = signal.ToDouble();
+
+
+
+
+
+             
             }
         }
     }

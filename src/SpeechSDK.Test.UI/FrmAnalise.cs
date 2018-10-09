@@ -15,6 +15,9 @@ namespace SpeechSDK.Test.UI
         public FrmAnalise()
         {
             InitializeComponent();
+
+            txtArquivoAudio.Text = @"D:\Desktop\Meu\TCC\git\SpeechSDK\src\Audios\audio01.wav";
+            label4.Text = "Marcos";
         }
     }
 }
