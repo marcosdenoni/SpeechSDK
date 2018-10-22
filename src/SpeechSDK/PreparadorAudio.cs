@@ -26,7 +26,7 @@ namespace SpeechSDK
             return _audioDecoder.Decode();
         }
 
-        public IEnumerable<Tuple<int,double[]>> ObterAudioFiltrado()
+        public IEnumerable<MelFrequencyCepstrumCoefficientDescriptor> ObterAudioFiltrado()
         {
             using (var signal = ObterSinal())
             using (var mfcc = new MelFrequencyCepstrumCoefficient())
@@ -37,7 +37,7 @@ namespace SpeechSDK
 
                 foreach (var mfccTransformItem in mfccTransformResult)
                 {
-                    yield return new Tuple<int, double[]>(mfccTransformItem.Frame, mfccTransformItem.Descriptor);
+                    yield return mfccTransformItem;
                 }
             }
         }

@@ -1,5 +1,7 @@
 ﻿using Accord.Audio;
+using Accord.Audio.Filters;
 using Accord.Controls;
+using SpeechSDK.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,81 +25,55 @@ namespace SpeechSDK.Test.UI
 
         private void btnAnalizar_Click(object sender, EventArgs e)
         {
-            GerarBitmap();
+            Testar();
+
 
             using (var processador = new PreparadorAudio(txtArquivo.Text))
+            using (var signal = processador.ObterSinal())
             {
-                using (var signal = processador.ObterSinal())
+                var monoFilter = new MonoFilter();
+
+                using (var monoSignal = monoFilter.Apply(signal))
                 {
-                    var chart = new Wavechart();
+                    var floatSignalArray = monoSignal.ToFloat();
 
-                    chart.Dock = DockStyle.Fill;
+                    var floatSignalFiltradoArray = floatSignalArray.Where(s => s < -0.01 || s > 0.01).ToArray();
 
-                    groupBox1.Controls.Add(chart);
+                    var filter = new HighPassFilter(0.02f);
 
-                    //signal.SampleRate
+                    using (var filterSignal = filter.Apply(monoSignal))
+                    {
+                        WavechartBox.Show(filterSignal.ToFloat(), "sinal filtrado", nonBlocking: true);
+                    }
 
-                    //var complexSignal = ComplexSignal.FromSignal(signal);
+                    WavechartBox.Show(floatSignalArray, "sinal original", nonBlocking: true);
 
-                    //chart.AddWaveform("Original", Color.Green, 3);
-                    //chart.UpdateWaveform("Original",signal.)
+                    WavechartBox.Show(floatSignalFiltradoArray, "sinal sem silencio", nonBlocking: true);
 
-                    //var complexSignal = ComplexSignal.FromSignal(signal);
-                    //// Transform to the complex domain
-                    //complexSignal.ForwardFourierTransform();
+                    var teste = processador.ObterAudioFiltrado().ToArray();
 
-                    //// Now we can get the power spectrum output and its
-                    //// related frequency vector to plot our spectrometer.
-
-                    ////Accord.Math.Transforms.FourierTransform2
-
-                    //Complex[] channel = complexSignal.GetChannel(0);
-
-
-                    //processador.ObterAudioFiltrado();
-
-                    //float[] testValues = signal.ToFloat().Take(128).ToArray();
-
-                    //// fill data series
-                    //for (int i = 0; i < 128; i++)
-                    //{
-                    //    testValues[i] = (float)Math.Sin(i / 18.0 * Math.PI);
-
-                    //}
-                    //// add new waveform to the chart
-                    //chart.AddWaveform("Test", Color.DarkGreen, 3);
-                    //// update the chart
-                    //chart.UpdateWaveform("Test", testValues);
-
-                    WavechartBox.Show(signal.ToFloat(), "teste");
-                    var teste = processador.ObterAudioFiltrado();
-
-                    var valores = teste.Select(v => (float)v.Item2.Average()).ToArray();
-                    WavechartBox.Show(valores, "teste2");
-
-
-
-                    //chart.AddWaveform("fft", Color.Green, 5);
-                    //chart.UpdateWaveform("fft", signal.ToFloat().Take(200).ToArray());
+                    var valores = teste.Select(v => (float)v.Descriptor.Average()).ToArray();
+                    WavechartBox.Show(valores, "MFCC", nonBlocking: true);
                 }
             }
         }
 
-
-        private void GerarBitmap()
+        private void Testar()
         {
-            using (var processador = new PreparadorAudio(txtArquivo.Text))
-            using (var signal = processador.ObterSinal())
-            {
+            var speechCore = new SpeechCore();
 
-                //var signalArray = signal.ToDouble();
+            speechCore.AdicionarModelo(new AudioModel(@".\Audios\Giovanni\audio_01.wav",
+                                                      @".\Audios\Giovanni\audio_02.wav",
+                                                      @".\Audios\Giovanni\audio_03.wav"));
+
+            speechCore.AdicionarModelo(new AudioModel(@".\Audios\Sidney\audio_01.wav",
+                                                      @".\Audios\Sidney\audio_02.wav",
+                                                      @".\Audios\Sidney\audio_03.wav"));
+
+            speechCore.AdicionarModelo(new AudioModel(@".\Audios\marcos\audio_01.wav"));
 
 
-
-
-
-             
-            }
+            speechCore.Treinar();
         }
     }
 }

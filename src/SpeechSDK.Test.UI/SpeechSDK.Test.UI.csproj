@@ -143,6 +143,34 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Audios\audio01.wav" />
+    <Content Include="Audios\Giovanni\audio_02.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Audios\Giovanni\audio_01.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Audios\Giovanni\audio_03.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Audios\m4a\Giovanni\Giovanni  Audio 2.m4a" />
+    <Content Include="Audios\m4a\Giovanni\Giovanni Audio 1.m4a" />
+    <Content Include="Audios\m4a\Giovanni\Giovanni Audio 3.m4a" />
+    <Content Include="Audios\m4a\Sidney\Homaranha.m4a" />
+    <Content Include="Audios\m4a\Sidney\Houston.m4a" />
+    <Content Include="Audios\m4a\Sidney\Proposta.m4a" />
+    <Content Include="Audios\Marcos\audio_01.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Audios\Sidney\audio_01.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Audios\Sidney\audio_02.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Audios\Sidney\audio_03.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="License-LGPL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
