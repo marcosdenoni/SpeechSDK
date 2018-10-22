@@ -16,21 +16,38 @@ namespace SpeechSDK
         /// </summary>
         private Dictionary<Guid, AudioModel> _modelos;
 
+        public SpeechCore()
+        {
+            _modelos = new Dictionary<Guid, AudioModel>();
+        }
+
         public void AdicionarModelo(AudioModel modelo)
         {
             if (!_modelos.ContainsKey(modelo.IdentificadorModelo))
-                _modelos.Add(modelo.IdentificadorModelo,modelo);
+                _modelos.Add(modelo.IdentificadorModelo, modelo);
             else
                 throw new ArgumentException("Modelo já cadastrado.");
         }
 
         public void Treinar()
         {
-            var activationNetwork = new ActivationNetwork(new ThresholdFunction(), 15, _modelos.Count);
+            int inputCount = 1400;
+
+            var activationNetwork = new ActivationNetwork(new ThresholdFunction(), inputCount, _modelos.Count);
             var perceptronLearning = new PerceptronLearning(activationNetwork);
             //perceptronLearning.LearningRate = this.learningRate;
 
-            //perceptronLearning.RunEpoch
+            foreach (var modelo in _modelos)
+            {
+                var saidaEsperada = modelo.Value.ObterSaidaEsperada();
+
+                foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(inputCount))
+                {
+                    var erroAbsoluto = perceptronLearning.Run(caracteristicas, saidaEsperada);
+
+                }
+            }
+
         }
     }
 }

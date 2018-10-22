@@ -66,11 +66,11 @@ namespace SpeechSDK.Test.UI
                                                       @".\Audios\Giovanni\audio_02.wav",
                                                       @".\Audios\Giovanni\audio_03.wav"));
 
-            speechCore.AdicionarModelo(new AudioModel(@".\Audios\Sidney\audio_01.wav",
-                                                      @".\Audios\Sidney\audio_02.wav",
-                                                      @".\Audios\Sidney\audio_03.wav"));
+            //speechCore.AdicionarModelo(new AudioModel(@".\Audios\Sidney\audio_01.wav",
+            //                                          @".\Audios\Sidney\audio_02.wav",
+            //                                          @".\Audios\Sidney\audio_03.wav"));
 
-            speechCore.AdicionarModelo(new AudioModel(@".\Audios\marcos\audio_01.wav"));
+            //speechCore.AdicionarModelo(new AudioModel(@".\Audios\marcos\audio_01.wav"));
 
 
             speechCore.Treinar();
