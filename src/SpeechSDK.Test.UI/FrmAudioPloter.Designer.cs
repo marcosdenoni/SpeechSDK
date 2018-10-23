@@ -40,7 +40,8 @@
             this.txtArquivo.Name = "txtArquivo";
             this.txtArquivo.Size = new System.Drawing.Size(410, 22);
             this.txtArquivo.TabIndex = 0;
-            this.txtArquivo.Text = "D:\\Desktop\\Meu\\TCC\\git\\SpeechSDK\\src\\Audios\\audio01.wav";
+            this.txtArquivo.Text = "D:\\Desktop\\Meu\\TCC\\git\\SpeechSDK\\src\\SpeechSDK.Test.UI\\Audios\\Sidney\\audio_01.wav" +
+    "";
             // 
             // btnAnalizar
             // 

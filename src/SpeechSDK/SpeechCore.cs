@@ -1,8 +1,10 @@
 ﻿using Accord.Neuro;
 using Accord.Neuro.Learning;
+using Accord.Neuro.Networks;
 using SpeechSDK.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,40 +16,98 @@ namespace SpeechSDK
         /// <summary>
         /// Dicionario de modelos conhecidos
         /// </summary>
-        private Dictionary<Guid, AudioModel> _modelos;
+        private Dictionary<Guid, AudioModel> _classes;
 
         public SpeechCore()
         {
-            _modelos = new Dictionary<Guid, AudioModel>();
+            _classes = new Dictionary<Guid, AudioModel>();
         }
 
         public void AdicionarModelo(AudioModel modelo)
         {
-            if (!_modelos.ContainsKey(modelo.IdentificadorModelo))
-                _modelos.Add(modelo.IdentificadorModelo, modelo);
+            if (!_classes.ContainsKey(modelo.IdentificadorModelo))
+                _classes.Add(modelo.IdentificadorModelo, modelo);
             else
                 throw new ArgumentException("Modelo já cadastrado.");
         }
 
         public void Treinar()
         {
-            int inputCount = 1400;
+            int inputCount = 140;
 
-            var activationNetwork = new ActivationNetwork(new ThresholdFunction(), inputCount, _modelos.Count);
+            var activationNetwork = new ActivationNetwork(new IdentityFunction(), inputCount, _classes.Count);
             var perceptronLearning = new PerceptronLearning(activationNetwork);
-            //perceptronLearning.LearningRate = this.learningRate;
+            // var backPropagationLearning = new BackPropagationLearning(activationNetwork);
 
-            foreach (var modelo in _modelos)
+            int indice = 0;
+
+            foreach (var modelo in _classes)
             {
-                var saidaEsperada = modelo.Value.ObterSaidaEsperada();
+                modelo.Value.SaidaEsperada = ObterSaidaEsperada(indice++);
 
                 foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(inputCount))
                 {
-                    var erroAbsoluto = perceptronLearning.Run(caracteristicas, saidaEsperada);
-
+                    var erroAbsoluto = perceptronLearning.Run(caracteristicas, modelo.Value.SaidaEsperada);
                 }
             }
 
+            activationNetwork.Randomize();
+
+            Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
+            Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
+        }
+
+        private void Testar(ActivationNetwork activationNetwork, int inputCount, string baseCaminho, string arquivo)
+        {
+            var classe = _classes.First(c => c.Value.Audios.Any(a => a.StartsWith(baseCaminho)));
+
+            Debug.WriteLine($"Saida esperada: {classe.Value.SaidaEsperada[0]},{classe.Value.SaidaEsperada[1]},{classe.Value.SaidaEsperada[2]}");
+
+            var teste2 = AudioModelHelper.ObterCaracteristicas(arquivo, inputCount);
+
+            foreach (var item in teste2)
+            {
+                var saida = activationNetwork.Compute(item);
+
+                //Debug.WriteLine($"'{saida[0]}', '{saida[1]}', '{saida[2]}'");
+                Imprimir(saida);
+            }
+        }
+
+        private void Imprimir(double[] vetor)
+        {
+            int maior = 0;
+            double valor = vetor[0];
+
+            for (int i = 0; i < vetor.Length; i++)
+            {
+                //Debug.Write($"'{vetor[0]}',");
+
+                if (vetor[0] > maior)
+                {
+                    valor = vetor[0];
+                    maior = i;
+                }
+            }
+
+            for (int i = 0; i < vetor.Length; i++)
+            {
+                if (maior == i)
+                    Debug.Write($"1,");
+                else
+                    Debug.Write($"0,");
+            }
+
+            Debug.WriteLine("");
+        }
+
+        private double[] ObterSaidaEsperada(int v)
+        {
+            var saida = new double[_classes.Count];
+
+            saida[v] = 1;
+
+            return saida;
         }
     }
 }

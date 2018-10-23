@@ -21,6 +21,8 @@ namespace SpeechSDK.Model
         /// </summary>
         public List<string> Audios { get; private set; }
 
+        public double[] SaidaEsperada { get; set; }
+
         public AudioModel()
         {
             Audios = new List<string>();

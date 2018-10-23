@@ -25,38 +25,36 @@ namespace SpeechSDK.Test.UI
 
         private void btnAnalizar_Click(object sender, EventArgs e)
         {
-            Testar();
-
-
-            using (var processador = new PreparadorAudio(txtArquivo.Text))
-            using (var signal = processador.ObterSinal())
+            try
             {
-                var monoFilter = new MonoFilter();
+                Testar();
 
-                using (var monoSignal = monoFilter.Apply(signal))
-                {
-                    var floatSignalArray = monoSignal.ToFloat();
+                using (var sinal = AudioModelHelper.ObterSinal(txtArquivo.Text))
+                    RenderizarSinal(sinal, false);
 
-                    var floatSignalFiltradoArray = floatSignalArray.Where(s => s < -0.01 || s > 0.01).ToArray();
 
-                    var filter = new HighPassFilter(0.02f);
+                using (var sinal = AudioModelHelper.ObterSinalLimpo(txtArquivo.Text))
+                    RenderizarSinal(sinal, true);
 
-                    using (var filterSignal = filter.Apply(monoSignal))
-                    {
-                        WavechartBox.Show(filterSignal.ToFloat(), "sinal filtrado", nonBlocking: true);
-                    }
+            }
+            catch (Exception ex)
+            {
 
-                    WavechartBox.Show(floatSignalArray, "sinal original", nonBlocking: true);
-
-                    WavechartBox.Show(floatSignalFiltradoArray, "sinal sem silencio", nonBlocking: true);
-
-                    var teste = processador.ObterAudioFiltrado().ToArray();
-
-                    var valores = teste.Select(v => (float)v.Descriptor.Average()).ToArray();
-                    WavechartBox.Show(valores, "MFCC", nonBlocking: true);
-                }
             }
         }
+
+        private void RenderizarSinal(Signal sinal, bool limpo)
+        {
+            var floatSinal = sinal.ToFloat();
+            WavechartBox.Show(floatSinal, "Sinal " + (limpo ? "Limpo" : "Original"), nonBlocking: true);
+
+            var teste = AudioModelHelper.ObterMFCCDescriptor(sinal);
+
+            var valores = teste.Select(v => (float)v.Descriptor.Average()).ToArray();
+            WavechartBox.Show(valores, "MFCC " + (limpo ? "Limpo" : ""), nonBlocking: true);
+        }
+
+
 
         private void Testar()
         {
@@ -66,11 +64,11 @@ namespace SpeechSDK.Test.UI
                                                       @".\Audios\Giovanni\audio_02.wav",
                                                       @".\Audios\Giovanni\audio_03.wav"));
 
-            //speechCore.AdicionarModelo(new AudioModel(@".\Audios\Sidney\audio_01.wav",
-            //                                          @".\Audios\Sidney\audio_02.wav",
-            //                                          @".\Audios\Sidney\audio_03.wav"));
+            speechCore.AdicionarModelo(new AudioModel(@".\Audios\Sidney\audio_01.wav",
+                                                      @".\Audios\Sidney\audio_02.wav",
+                                                      @".\Audios\Sidney\audio_03.wav"));
 
-            //speechCore.AdicionarModelo(new AudioModel(@".\Audios\marcos\audio_01.wav"));
+            speechCore.AdicionarModelo(new AudioModel(@".\Audios\marcos\audio_01.wav"));
 
 
             speechCore.Treinar();

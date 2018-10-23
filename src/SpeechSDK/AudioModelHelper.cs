@@ -3,13 +3,14 @@ using Accord.Audio.Formats;
 using SpeechSDK.Model;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SpeechSDK
 {
-    static class AudioModelHelper
+    public static class AudioModelHelper
     {       
         public static double[] ObterSaidaEsperada(this AudioModel audioModel)
         {
@@ -22,10 +23,41 @@ namespace SpeechSDK
         }
 
 
-        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int quebraSaida = 1400)
+        public static Signal ObterSinal(string arquivoAudio)
         {
             var audioDecoder = new WaveDecoder(arquivoAudio);
-            using (var signal = audioDecoder.Decode())
+            return audioDecoder.Decode();
+        }
+
+
+        public static Signal ObterSinalLimpo(string arquivoAudio)
+        {
+            var audioDecoder = new WaveDecoder(arquivoAudio);
+
+            using (var stream = new MemoryStream())
+            {
+                var audioEncoder = new WaveEncoder(stream);
+
+                for (int i = 0; i < audioDecoder.Frames; i++)
+                {
+                    using (var signal = audioDecoder.Decode(i, 1))
+                    {
+                        if (signal.ToFloat().Any(s => s < -0.01 || s > 0.01))
+                            audioEncoder.Encode(signal);
+                    }
+                }
+
+                stream.Seek(0, SeekOrigin.Begin);
+
+                var audioLimpoDecoder = new WaveDecoder(stream);
+                return audioLimpoDecoder.Decode();
+            }
+        }
+
+
+        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int quebraSaida = 1400)
+        {                      
+            using (var signal = ObterSinalLimpo(arquivoAudio))
             {
                 var mFCCDescriptor = ObterMFCCDescriptor(signal);
 
@@ -64,5 +96,13 @@ namespace SpeechSDK
                 }
             }
         }
+
+        #region Filtro silencio
+        private static bool IsSilence(float amplitude, sbyte threshold)
+        {
+            double dB = 20 * Math.Log10(Math.Abs(amplitude));
+            return dB < threshold;
+        }
+        #endregion
     }
 }
