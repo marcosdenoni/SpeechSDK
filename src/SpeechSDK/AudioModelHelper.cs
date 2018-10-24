@@ -1,5 +1,7 @@
 ﻿using Accord.Audio;
+using Accord.Audio.Filters;
 using Accord.Audio.Formats;
+using Accord.Audio.Windows;
 using SpeechSDK.Model;
 using System;
 using System.Collections.Generic;
@@ -11,7 +13,7 @@ using System.Threading.Tasks;
 namespace SpeechSDK
 {
     public static class AudioModelHelper
-    {       
+    {
         public static double[] ObterSaidaEsperada(this AudioModel audioModel)
         {
             return new double[] { Convert.ToDouble(audioModel.GetHashCode()) };
@@ -54,10 +56,53 @@ namespace SpeechSDK
             }
         }
 
+        public static Signal AplicarFiltroPassaAlta(Signal sinal)
+        {
+            var highPassFilter = new HighPassFilter(0.9f);
 
-        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int quebraSaida = 1400)
-        {                      
-            using (var signal = ObterSinalLimpo(arquivoAudio))
+            return highPassFilter.Apply(sinal);
+        }
+
+        /// <summary>
+        /// Realiza a obtenção de todos os dados a serem submetidos a rede
+        /// </summary>
+        /// <param name="arquivoAudio"></param>
+        /// <param name="quebraSaida"></param>
+        /// <returns></returns>
+        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int quebraSaida)
+        {
+            using (var signalLimpo = ObterSinalLimpo(arquivoAudio))
+            using (var signal = AplicarFiltroPassaAlta(signalLimpo))
+            {
+                var mFCCDescriptor = ObterMFCCDescriptor(signal);
+
+                int counter = 0;
+
+                var buffer = new double[quebraSaida];
+
+                foreach (var mFCCDescriptorItem in mFCCDescriptor)
+                {
+                    foreach (var item in mFCCDescriptorItem.Descriptor)
+                    {
+                        buffer[counter] = item;
+
+                        counter++;
+                        if (counter == quebraSaida)
+                        {
+                            yield return buffer;
+
+                            buffer = new double[quebraSaida];
+                            counter = 0;
+                        }
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<double[]> ObterCaracteristicasVelho(string arquivoAudio, int quebraSaida = 1400)
+        {
+            using (var signalLimpo = ObterSinalLimpo(arquivoAudio))
+            using (var signal = AplicarFiltroPassaAlta(signalLimpo))
             {
                 var mFCCDescriptor = ObterMFCCDescriptor(signal);
 
@@ -86,7 +131,7 @@ namespace SpeechSDK
 
         public static IEnumerable<MelFrequencyCepstrumCoefficientDescriptor> ObterMFCCDescriptor(Signal signal)
         {
-            using (var mfcc = new MelFrequencyCepstrumCoefficient())
+            using (var mfcc = new MelFrequencyCepstrumCoefficient(filterCount: 20, samplingRate: signal.SampleRate))
             {
                 var mfccTransformResult = mfcc.Transform(signal);
 

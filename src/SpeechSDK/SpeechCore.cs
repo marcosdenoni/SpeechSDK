@@ -33,25 +33,32 @@ namespace SpeechSDK
 
         public void Treinar()
         {
-            int inputCount = 140;
+            int inputCount = 130;
 
-            var activationNetwork = new ActivationNetwork(new IdentityFunction(), inputCount, _classes.Count);
+            var activationNetwork = new ActivationNetwork(new ThresholdFunction(), inputCount, _classes.Count);
             var perceptronLearning = new PerceptronLearning(activationNetwork);
             // var backPropagationLearning = new BackPropagationLearning(activationNetwork);
 
             int indice = 0;
 
+            int treinamento = 50;
+
             foreach (var modelo in _classes)
             {
                 modelo.Value.SaidaEsperada = ObterSaidaEsperada(indice++);
 
+                int contadorTreinamento = 0;
+
                 foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(inputCount))
                 {
                     var erroAbsoluto = perceptronLearning.Run(caracteristicas, modelo.Value.SaidaEsperada);
+
+                    if (treinamento == contadorTreinamento++)
+                        break;
                 }
             }
 
-            activationNetwork.Randomize();
+            //activationNetwork.Randomize();
 
             Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
             Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
@@ -81,7 +88,7 @@ namespace SpeechSDK
 
             for (int i = 0; i < vetor.Length; i++)
             {
-                //Debug.Write($"'{vetor[0]}',");
+                Debug.Write($"'{vetor[0]}',");
 
                 if (vetor[0] > maior)
                 {
@@ -90,13 +97,13 @@ namespace SpeechSDK
                 }
             }
 
-            for (int i = 0; i < vetor.Length; i++)
-            {
-                if (maior == i)
-                    Debug.Write($"1,");
-                else
-                    Debug.Write($"0,");
-            }
+            //for (int i = 0; i < vetor.Length; i++)
+            //{
+            //    if (maior == i)
+            //        Debug.Write($"1,");
+            //    else
+            //        Debug.Write($"0,");
+            //}
 
             Debug.WriteLine("");
         }
