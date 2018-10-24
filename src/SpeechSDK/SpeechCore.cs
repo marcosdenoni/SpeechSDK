@@ -33,15 +33,15 @@ namespace SpeechSDK
 
         public void Treinar()
         {
-            int inputCount = 130;
+            int inputCount = 13 * 10;
 
             var activationNetwork = new ActivationNetwork(new ThresholdFunction(), inputCount, _classes.Count);
             var perceptronLearning = new PerceptronLearning(activationNetwork);
-            // var backPropagationLearning = new BackPropagationLearning(activationNetwork);
+            // var perceptronLearning = new BackPropagationLearning(activationNetwork);
 
             int indice = 0;
 
-            int treinamento = 50;
+            int treinamento = -1;
 
             foreach (var modelo in _classes)
             {
@@ -60,15 +60,22 @@ namespace SpeechSDK
 
             //activationNetwork.Randomize();
 
-            Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
-            Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
+            Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_02.wav");
+            Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_03.wav");
+
+            //Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
+            //Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
         }
 
         private void Testar(ActivationNetwork activationNetwork, int inputCount, string baseCaminho, string arquivo)
         {
             var classe = _classes.First(c => c.Value.Audios.Any(a => a.StartsWith(baseCaminho)));
 
-            Debug.WriteLine($"Saida esperada: {classe.Value.SaidaEsperada[0]},{classe.Value.SaidaEsperada[1]},{classe.Value.SaidaEsperada[2]}");
+            Debug.Write($"Saida esperada: ");
+
+            foreach (var item in classe.Value.SaidaEsperada)
+                Debug.Write($"{item},");
+            Debug.WriteLine("");
 
             var teste2 = AudioModelHelper.ObterCaracteristicas(arquivo, inputCount);
 
@@ -88,22 +95,22 @@ namespace SpeechSDK
 
             for (int i = 0; i < vetor.Length; i++)
             {
-                Debug.Write($"'{vetor[0]}',");
+                //Debug.Write($"'{vetor[i]}',");
 
-                if (vetor[0] > maior)
+                if (vetor[i] > maior)
                 {
-                    valor = vetor[0];
+                    valor = vetor[i];
                     maior = i;
                 }
             }
 
-            //for (int i = 0; i < vetor.Length; i++)
-            //{
-            //    if (maior == i)
-            //        Debug.Write($"1,");
-            //    else
-            //        Debug.Write($"0,");
-            //}
+            for (int i = 0; i < vetor.Length; i++)
+            {
+                if (maior == i)
+                    Debug.Write($"1,");
+                else
+                    Debug.Write($"0,");
+            }
 
             Debug.WriteLine("");
         }

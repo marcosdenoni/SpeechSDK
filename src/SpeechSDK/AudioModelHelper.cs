@@ -71,8 +71,10 @@ namespace SpeechSDK
         /// <returns></returns>
         public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int quebraSaida)
         {
-            using (var signalLimpo = ObterSinalLimpo(arquivoAudio))
-            using (var signal = AplicarFiltroPassaAlta(signalLimpo))
+            //using (var signalLimpo = ObterSinalLimpo(arquivoAudio))
+            //using (var signal = AplicarFiltroPassaAlta(signalLimpo))
+
+            using (var signal = ObterSinalLimpo(arquivoAudio))
             {
                 var mFCCDescriptor = ObterMFCCDescriptor(signal);
 
