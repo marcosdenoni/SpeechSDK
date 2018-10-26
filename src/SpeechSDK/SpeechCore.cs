@@ -33,12 +33,14 @@ namespace SpeechSDK
 
         public void Treinar()
         {
-            int inputCount = 13 * 10;
+            //int inputCount = 13 * 1;
+            int inputCount = 201;
 
-            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, 7, _classes.Count);
-            //var supervisedLearning = new PerceptronLearning(activationNetwork);
-            var supervisedLearning = new BackPropagationLearning(activationNetwork);
-            supervisedLearning.LearningRate = 0.6;
+            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, _classes.Count);
+            var supervisedLearning = new PerceptronLearning(activationNetwork);
+            //var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, 2, 3, _classes.Count);
+            //var supervisedLearning = new BackPropagationLearning(activationNetwork);
+            //supervisedLearning.LearningRate = 0.6;
 
 
             int indice = 0;

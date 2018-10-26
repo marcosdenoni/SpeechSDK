@@ -39,7 +39,6 @@ namespace SpeechSDK.Test.UI
             }
             catch (Exception ex)
             {
-
             }
         }
 
