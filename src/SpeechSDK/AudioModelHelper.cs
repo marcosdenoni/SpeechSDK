@@ -31,28 +31,40 @@ namespace SpeechSDK
             return audioDecoder.Decode();
         }
 
-
-        public static Signal ObterSinalLimpo(string arquivoAudio)
+        public static Signal ObterSinalMono(string arquivoAudio)
         {
             var audioDecoder = new WaveDecoder(arquivoAudio);
 
-            using (var stream = new MemoryStream())
+            using (var originalSignal = audioDecoder.Decode())
             {
-                var audioEncoder = new WaveEncoder(stream);
+                var monoFilter = new MonoFilter();
+                return monoFilter.Apply(originalSignal);
+            }
+        }
 
-                for (int i = 0; i < audioDecoder.Frames; i++)
-                {
-                    using (var signal = audioDecoder.Decode(i, 1))
-                    {
-                        if (signal.ToFloat().Any(s => s < -0.01 || s > 0.01))
-                            audioEncoder.Encode(signal);
-                    }
-                }
+        public static Signal ObterSinalLimpo(string arquivoAudio)
+        {
+            using (var signalMono = ObterSinalMono(arquivoAudio))
+            {
+                var floatSignal = signalMono.ToFloat();
 
-                stream.Seek(0, SeekOrigin.Begin);
+                var buffer = floatSignal.Where(s => s < -0.008 || s > 0.008).ToArray();
 
-                var audioLimpoDecoder = new WaveDecoder(stream);
-                return audioLimpoDecoder.Decode();
+                Signal.FromArray(buffer, 1, signalMono.SampleRate, signalMono.SampleFormat);
+
+                var outSignal = Signal.FromArray(buffer, 1, signalMono.SampleRate, signalMono.SampleFormat);
+
+
+//#if DEBUG
+//                File.Delete(@"C:\a\teste.wav");
+//                using (var fs = new FileStream(@"C:\a\teste.wav", FileMode.CreateNew))
+//                {
+//                    var audioEncoder = new WaveEncoder(fs);
+//                    audioEncoder.Encode(outSignal);
+//                }
+//#endif
+
+                return outSignal;
             }
         }
 
@@ -75,6 +87,7 @@ namespace SpeechSDK
             //using (var signal = AplicarFiltroPassaAlta(signalLimpo))
 
             using (var signal = ObterSinalLimpo(arquivoAudio))
+            //using (var signal = ObterSinal(arquivoAudio))
             {
                 var mFCCDescriptor = ObterMFCCDescriptor(signal);
 
@@ -84,6 +97,18 @@ namespace SpeechSDK
 
                 foreach (var mFCCDescriptorItem in mFCCDescriptor)
                 {
+
+                    //buffer[counter] = mFCCDescriptorItem.Descriptor.Average();
+
+                    //counter++;
+                    //if (counter == quebraSaida)
+                    //{
+                    //    yield return buffer;
+
+                    //    buffer = new double[quebraSaida];
+                    //    counter = 0;
+                    //}
+
                     foreach (var item in mFCCDescriptorItem.Descriptor)
                     {
                         buffer[counter] = item;

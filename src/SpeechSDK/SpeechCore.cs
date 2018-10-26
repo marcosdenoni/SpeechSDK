@@ -35,13 +35,18 @@ namespace SpeechSDK
         {
             int inputCount = 13 * 10;
 
-            var activationNetwork = new ActivationNetwork(new ThresholdFunction(), inputCount, _classes.Count);
-            var perceptronLearning = new PerceptronLearning(activationNetwork);
-            // var perceptronLearning = new BackPropagationLearning(activationNetwork);
+            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, 7, _classes.Count);
+            //var supervisedLearning = new PerceptronLearning(activationNetwork);
+            var supervisedLearning = new BackPropagationLearning(activationNetwork);
+            supervisedLearning.LearningRate = 0.6;
+
 
             int indice = 0;
 
             int treinamento = -1;
+
+            var entrada = new List<double[]>();
+            var saida = new List<double[]>();
 
             foreach (var modelo in _classes)
             {
@@ -51,17 +56,25 @@ namespace SpeechSDK
 
                 foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(inputCount))
                 {
-                    var erroAbsoluto = perceptronLearning.Run(caracteristicas, modelo.Value.SaidaEsperada);
+                    entrada.Add(caracteristicas);
+                    saida.Add(modelo.Value.SaidaEsperada);
+
+                    //var erroAbsoluto = perceptronLearning.Run(caracteristicas, modelo.Value.SaidaEsperada);
 
                     if (treinamento == contadorTreinamento++)
                         break;
                 }
             }
 
+            var entradaArray = entrada.ToArray();
+            var saidaArray = saida.ToArray();
+
+            var resultado = supervisedLearning.RunEpoch(entradaArray, saidaArray);
+
             //activationNetwork.Randomize();
 
-            Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_02.wav");
-            Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_03.wav");
+            Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
+            Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
 
             //Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
             //Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
@@ -73,9 +86,7 @@ namespace SpeechSDK
 
             Debug.Write($"Saida esperada: ");
 
-            foreach (var item in classe.Value.SaidaEsperada)
-                Debug.Write($"{item},");
-            Debug.WriteLine("");
+            ImprimirVetor(classe.Value.SaidaEsperada);
 
             var teste2 = AudioModelHelper.ObterCaracteristicas(arquivo, inputCount);
 
@@ -84,12 +95,23 @@ namespace SpeechSDK
                 var saida = activationNetwork.Compute(item);
 
                 //Debug.WriteLine($"'{saida[0]}', '{saida[1]}', '{saida[2]}'");
+
                 Imprimir(saida);
+
+                ImprimirVetor(saida);
             }
+        }
+
+        private void ImprimirVetor(double[] vetor)
+        {
+            foreach (var item in vetor)
+                Debug.Write($"{item}, ");
+            Debug.WriteLine("");
         }
 
         private void Imprimir(double[] vetor)
         {
+
             int maior = 0;
             double valor = vetor[0];
 
@@ -97,7 +119,7 @@ namespace SpeechSDK
             {
                 //Debug.Write($"'{vetor[i]}',");
 
-                if (vetor[i] > maior)
+                if (vetor[i] > valor)
                 {
                     valor = vetor[i];
                     maior = i;
@@ -112,7 +134,8 @@ namespace SpeechSDK
                     Debug.Write($"0,");
             }
 
-            Debug.WriteLine("");
+            Debug.Write($" | ");
+            //Debug.WriteLine("");
         }
 
         private double[] ObterSaidaEsperada(int v)

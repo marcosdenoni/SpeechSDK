@@ -68,7 +68,7 @@ namespace SpeechSDK.Test.UI
                                                       @".\Audios\Sidney\audio_02.wav",
                                                       @".\Audios\Sidney\audio_03.wav"));
 
-            //speechCore.AdicionarModelo(new AudioModel(@".\Audios\marcos\audio_01.wav"));
+            speechCore.AdicionarModelo(new AudioModel(@".\Audios\marcos\audio_01.wav"));
 
 
             speechCore.Treinar();
