@@ -33,15 +33,22 @@ namespace SpeechSDK
 
         public void Treinar()
         {
-            //int inputCount = 13 * 1;
-            int inputCount = 201;
+            int segundosSegmentos = 2;
 
-            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, _classes.Count);
+            int tamanhoEntrada = segundosSegmentos * 1400;//1 segundo = 100 valores MFCC, cada valor com 14 dados
+
+            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), tamanhoEntrada, _classes.Count);
             var supervisedLearning = new PerceptronLearning(activationNetwork);
+            supervisedLearning.LearningRate = 0.6;
+
             //var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, 2, 3, _classes.Count);
             //var supervisedLearning = new BackPropagationLearning(activationNetwork);
             //supervisedLearning.LearningRate = 0.6;
 
+            //var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, 2, 2, _classes.Count);
+            //var supervisedLearning = new BackPropagationLearning(activationNetwork);
+
+            var gaussianWeights = new GaussianWeights(activationNetwork);
 
             int indice = 0;
 
@@ -56,12 +63,12 @@ namespace SpeechSDK
 
                 int contadorTreinamento = 0;
 
-                foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(inputCount))
+                foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(segundosSegmentos))
                 {
                     entrada.Add(caracteristicas);
                     saida.Add(modelo.Value.SaidaEsperada);
 
-                    //var erroAbsoluto = perceptronLearning.Run(caracteristicas, modelo.Value.SaidaEsperada);
+                    //var erroAbsoluto = supervisedLearning.Run(caracteristicas, modelo.Value.SaidaEsperada);
 
                     if (treinamento == contadorTreinamento++)
                         break;
@@ -73,13 +80,15 @@ namespace SpeechSDK
 
             var resultado = supervisedLearning.RunEpoch(entradaArray, saidaArray);
 
+            gaussianWeights.Randomize(0);
+
             //activationNetwork.Randomize();
 
-            Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
-            Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
+            Testar(activationNetwork, segundosSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_02.wav");
+            Testar(activationNetwork, segundosSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_03.wav");
 
-            //Testar(activationNetwork, inputCount, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
-            //Testar(activationNetwork, inputCount, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
+            //Testar(activationNetwork, segundosSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
+            //Testar(activationNetwork, segundosSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
         }
 
         private void Testar(ActivationNetwork activationNetwork, int inputCount, string baseCaminho, string arquivo)
@@ -92,28 +101,39 @@ namespace SpeechSDK
 
             var teste2 = AudioModelHelper.ObterCaracteristicas(arquivo, inputCount);
 
+            var media = new int[_classes.Count];
+
             foreach (var item in teste2)
             {
                 var saida = activationNetwork.Compute(item);
 
                 //Debug.WriteLine($"'{saida[0]}', '{saida[1]}', '{saida[2]}'");
 
-                Imprimir(saida);
+                var impressao = Imprimir(saida);
+
+                for (int i = 0; i < _classes.Count; i++)
+                {
+                    media[i] += impressao[i];
+                }
 
                 ImprimirVetor(saida);
             }
+
+            Debug.Write("Média: ");
+            ImprimirVetor(media);
         }
 
-        private void ImprimirVetor(double[] vetor)
+        private void ImprimirVetor<T>(T[] vetor, bool pularLinha = true)
         {
             foreach (var item in vetor)
                 Debug.Write($"{item}, ");
-            Debug.WriteLine("");
+
+            if (pularLinha)
+                Debug.WriteLine("");
         }
 
-        private void Imprimir(double[] vetor)
+        private int[] Imprimir(double[] vetor)
         {
-
             int maior = 0;
             double valor = vetor[0];
 
@@ -128,16 +148,13 @@ namespace SpeechSDK
                 }
             }
 
-            for (int i = 0; i < vetor.Length; i++)
-            {
-                if (maior == i)
-                    Debug.Write($"1,");
-                else
-                    Debug.Write($"0,");
-            }
+            var tmpVector = new int[vetor.Length];
+            tmpVector[maior] = 1;
+            ImprimirVetor(tmpVector, false);
 
             Debug.Write($" | ");
-            //Debug.WriteLine("");
+
+            return tmpVector;
         }
 
         private double[] ObterSaidaEsperada(int v)

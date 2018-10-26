@@ -14,10 +14,7 @@ namespace SpeechSDK
 {
     public static class AudioModelHelper
     {
-        public static IEnumerable<double[]> ObterCaracteristicas(this AudioModel audioModel, int quebraSaida = 1400)
-        {
-            return audioModel.Audios.SelectMany(a => ObterCaracteristicas(a, quebraSaida));
-        }
+        public static IEnumerable<double[]> ObterCaracteristicas(this AudioModel audioModel, int segundosSegmentos) => audioModel.Audios.SelectMany(a => ObterCaracteristicas(a, segundosSegmentos));
 
 
         public static Signal ObterSinal(string arquivoAudio)
@@ -69,12 +66,15 @@ namespace SpeechSDK
 
             var buffer = new float[signal.SampleRate * seconds];
 
-            for (int i = 0; i < floatSignal.Length; i += floatSignal.Length)
+            for (int i = 0; i < floatSignal.Length; i += buffer.Length)
             {
                 int len = floatSignal.Length - i;
 
                 if (len > buffer.Length)
+                {
                     len = buffer.Length;
+                    buffer = new float[buffer.Length];
+                }
 
                 Array.Copy(floatSignal, i, buffer, 0, len);
 
@@ -83,7 +83,7 @@ namespace SpeechSDK
                 yield return outSignal;
             }
         }
-        
+
         public static Signal AplicarFiltroPassaAlta(Signal sinal)
         {
             var highPassFilter = new HighPassFilter(0.9f);
@@ -102,56 +102,73 @@ namespace SpeechSDK
             foreach (var mFCCDescriptorItem in mFCCDescriptor)
             {
 
-                buffer[counter] = mFCCDescriptorItem.Descriptor.Average();
+                //buffer[counter] = mFCCDescriptorItem.Descriptor.Average();
 
-                counter++;
-                if (counter == quebraSaida)
-                {
-                    yield return buffer;
-
-                    buffer = new double[quebraSaida];
-                    counter = 0;
-                }
-
-                //foreach (var item in mFCCDescriptorItem.Descriptor)
+                //counter++;
+                //if (counter == quebraSaida)
                 //{
-                //    buffer[counter] = item;
+                //    yield return buffer;
 
-                //    counter++;
-                //    if (counter == quebraSaida)
-                //    {
-                //        yield return buffer;
-
-                //        buffer = new double[quebraSaida];
-                //        counter = 0;
-                //    }
+                //    buffer = new double[quebraSaida];
+                //    counter = 0;
                 //}
+
+                foreach (var item in mFCCDescriptorItem.Descriptor)
+                {
+                    buffer[counter] = item;
+
+                    counter++;
+                    if (counter == quebraSaida)
+                    {
+                        yield return buffer;
+
+                        buffer = new double[quebraSaida];
+                        counter = 0;
+                    }
+                }
             }
+        }
+
+        public static double[] AplicarMFCCNovo(Signal signal, int segundosSegmentos)
+        {
+            var mFCCDescriptor = ObterMFCCDescriptor(signal);
+
+            int counter = 0;
+
+            var buffer = new double[segundosSegmentos*1400];
+
+            foreach (var mFCCDescriptorItem in mFCCDescriptor)
+            {
+                foreach (var item in mFCCDescriptorItem.Descriptor)
+                {
+                    buffer[counter++] = item;
+                }
+            }
+
+            return buffer;
         }
 
         /// <summary>
         /// Realiza a obtenção de todos os dados a serem submetidos a rede
         /// </summary>
         /// <param name="arquivoAudio"></param>
-        /// <param name="quebraSaida"></param>
+        /// <param name="segundosSegmentos"></param>
         /// <returns></returns>
-        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int quebraSaida)
+        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int segundosSegmentos)
         {
-            using (var signalLimpo = ObterSinalLimpo(arquivoAudio))
-            using (var signal = AplicarFiltroPassaAlta(signalLimpo))
-
-            //using (var signal = ObterSinalLimpo(arquivoAudio))
-            //using (var signal = ObterSinal(arquivoAudio))
+            //using (var signalLimpo = ObterSinalLimpo(arquivoAudio))
+            //using (var signal = AplicarFiltroPassaAlta(signalLimpo))
+            using (var signal = ObterSinalLimpo(arquivoAudio))
             {
-                foreach (var segmentoSignal in SegmentarSinal(signal))
+                foreach (var segmentoSignal in SegmentarSinal(signal, segundosSegmentos))
                 {
-                    foreach (var item in AplicarMFCC(segmentoSignal, quebraSaida))
-                    {
-                        yield return item;
-                    }
-                }
+                    yield return AplicarMFCCNovo(segmentoSignal, segundosSegmentos);
 
-                //return AplicarMFCC(signal, quebraSaida);
+                    //foreach (var item in AplicarMFCC(segmentoSignal, quebraSaida))
+                    //{
+                    //    yield return item;
+                    //}
+                }
             }
         }
 
