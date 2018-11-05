@@ -14,7 +14,7 @@ namespace SpeechSDK
 {
     public static class AudioModelHelper
     {
-        public static IEnumerable<double[]> ObterCaracteristicas(this AudioModel audioModel, int segundosSegmentos) => audioModel.Audios.SelectMany(a => ObterCaracteristicas(a, segundosSegmentos));
+        public static IEnumerable<double[]> ObterCaracteristicas(this AudioModel audioModel, int msSegmentos) => audioModel.Audios.SelectMany(a => ObterCaracteristicas(a, msSegmentos));
 
 
         public static Signal ObterSinal(string arquivoAudio)
@@ -60,11 +60,13 @@ namespace SpeechSDK
             }
         }
 
-        public static IEnumerable<Signal> SegmentarSinal(Signal signal, int seconds = 2)
+        public static IEnumerable<Signal> SegmentarSinal(Signal signal, int ms = 100)
         {
             var floatSignal = signal.ToFloat();
 
-            var buffer = new float[signal.SampleRate * seconds];
+            var samples = (signal.SampleRate / 1000) * ms;
+
+            var buffer = new float[samples];
 
             for (int i = 0; i < floatSignal.Length; i += buffer.Length)
             {
@@ -101,18 +103,6 @@ namespace SpeechSDK
 
             foreach (var mFCCDescriptorItem in mFCCDescriptor)
             {
-
-                //buffer[counter] = mFCCDescriptorItem.Descriptor.Average();
-
-                //counter++;
-                //if (counter == quebraSaida)
-                //{
-                //    yield return buffer;
-
-                //    buffer = new double[quebraSaida];
-                //    counter = 0;
-                //}
-
                 foreach (var item in mFCCDescriptorItem.Descriptor)
                 {
                     buffer[counter] = item;
@@ -129,20 +119,29 @@ namespace SpeechSDK
             }
         }
 
-        public static double[] AplicarMFCCNovo(Signal signal, int segundosSegmentos)
+        public static double[] AplicarMFCCNovo(Signal signal, int msSegmentos)
         {
             var mFCCDescriptor = ObterMFCCDescriptor(signal);
 
             int counter = 0;
 
-            var buffer = new double[segundosSegmentos*1400];
+
+            var tamanhoBuffer = (msSegmentos / 10 + 1) * 13;
+            //var buffer = new double[11*13];
+            var buffer = new double[tamanhoBuffer];
 
             foreach (var mFCCDescriptorItem in mFCCDescriptor)
             {
                 foreach (var item in mFCCDescriptorItem.Descriptor)
                 {
                     buffer[counter++] = item;
+
+                    if (counter >= buffer.Length)
+                        break;
                 }
+
+                if (counter >= buffer.Length)
+                    break;
             }
 
             return buffer;
@@ -152,22 +151,17 @@ namespace SpeechSDK
         /// Realiza a obtenção de todos os dados a serem submetidos a rede
         /// </summary>
         /// <param name="arquivoAudio"></param>
-        /// <param name="segundosSegmentos"></param>
+        /// <param name="msSegmentos"></param>
         /// <returns></returns>
-        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int segundosSegmentos)
+        public static IEnumerable<double[]> ObterCaracteristicas(string arquivoAudio, int msSegmentos)
         {
             //using (var signalLimpo = ObterSinalLimpo(arquivoAudio))
             //using (var signal = AplicarFiltroPassaAlta(signalLimpo))
             using (var signal = ObterSinalLimpo(arquivoAudio))
             {
-                foreach (var segmentoSignal in SegmentarSinal(signal, segundosSegmentos))
+                foreach (var segmentoSignal in SegmentarSinal(signal, msSegmentos))
                 {
-                    yield return AplicarMFCCNovo(segmentoSignal, segundosSegmentos);
-
-                    //foreach (var item in AplicarMFCC(segmentoSignal, quebraSaida))
-                    //{
-                    //    yield return item;
-                    //}
+                    yield return AplicarMFCCNovo(segmentoSignal, msSegmentos);
                 }
             }
         }
@@ -184,13 +178,5 @@ namespace SpeechSDK
                 }
             }
         }
-
-        #region Filtro silencio
-        private static bool IsSilence(float amplitude, sbyte threshold)
-        {
-            double dB = 20 * Math.Log10(Math.Abs(amplitude));
-            return dB < threshold;
-        }
-        #endregion
     }
 }

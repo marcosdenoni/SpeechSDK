@@ -16,8 +16,13 @@ namespace SpeechSDK.Test.UI
         {
             InitializeComponent();
 
-            txtArquivoAudio.Text = @"D:\Desktop\Meu\TCC\git\SpeechSDK\src\Audios\audio01.wav";
+            txtArquivoAudio.Text = @"D:\Desktop\Dev\TCC\SpeechSDK\src\Audios\audio01.wav";
             label4.Text = "Marcos";
+        }
+
+        private void btnAnalisar_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

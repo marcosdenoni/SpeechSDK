@@ -33,22 +33,18 @@ namespace SpeechSDK
 
         public void Treinar()
         {
-            int segundosSegmentos = 2;
+            int msSegmentos = 100;
 
-            int tamanhoEntrada = segundosSegmentos * 1400;//1 segundo = 100 valores MFCC, cada valor com 14 dados
+            int tamanhoEntrada = (msSegmentos / 10 + 1) * 13;//1 segundo = 100 valores MFCC, cada valor com 14 dados
 
-            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), tamanhoEntrada, _classes.Count);
-            var supervisedLearning = new PerceptronLearning(activationNetwork);
+            //var activationNetwork = new ActivationNetwork(new ThresholdFunction(), tamanhoEntrada, _classes.Count);
+            //var supervisedLearning = new PerceptronLearning(activationNetwork);
+
+            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), tamanhoEntrada,  _classes.Count);
+            //var supervisedLearning = new PerceptronLearning(activationNetwork);
+
+            var supervisedLearning = new BackPropagationLearning(activationNetwork);
             supervisedLearning.LearningRate = 0.6;
-
-            //var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, 2, 3, _classes.Count);
-            //var supervisedLearning = new BackPropagationLearning(activationNetwork);
-            //supervisedLearning.LearningRate = 0.6;
-
-            //var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), inputCount, 2, 2, _classes.Count);
-            //var supervisedLearning = new BackPropagationLearning(activationNetwork);
-
-            var gaussianWeights = new GaussianWeights(activationNetwork);
 
             int indice = 0;
 
@@ -63,7 +59,7 @@ namespace SpeechSDK
 
                 int contadorTreinamento = 0;
 
-                foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(segundosSegmentos))
+                foreach (var caracteristicas in modelo.Value.ObterCaracteristicas(msSegmentos))
                 {
                     entrada.Add(caracteristicas);
                     saida.Add(modelo.Value.SaidaEsperada);
@@ -80,22 +76,20 @@ namespace SpeechSDK
 
             var resultado = supervisedLearning.RunEpoch(entradaArray, saidaArray);
 
-            gaussianWeights.Randomize(0);
+            Testar(activationNetwork, msSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_02.wav");
+            Testar(activationNetwork, msSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
 
-            //activationNetwork.Randomize();
+            Testar(activationNetwork, msSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_03.wav");
+            Testar(activationNetwork, msSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
 
-            Testar(activationNetwork, segundosSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_02.wav");
-            Testar(activationNetwork, segundosSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_03.wav");
-
-            //Testar(activationNetwork, segundosSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
-            //Testar(activationNetwork, segundosSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
+            Testar(activationNetwork, msSegmentos, @".\Audios\Wellington", @".\Audios\Wellington\audio_03.wav");
         }
 
         private void Testar(ActivationNetwork activationNetwork, int inputCount, string baseCaminho, string arquivo)
         {
             var classe = _classes.First(c => c.Value.Audios.Any(a => a.StartsWith(baseCaminho)));
 
-            Debug.Write($"Saida esperada: ");
+            Debug.Write($"{baseCaminho} Saida esperada: ");
 
             ImprimirVetor(classe.Value.SaidaEsperada);
 

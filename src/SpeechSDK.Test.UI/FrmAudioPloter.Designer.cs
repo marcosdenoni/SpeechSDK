@@ -36,18 +36,19 @@
             // 
             // txtArquivo
             // 
-            this.txtArquivo.Location = new System.Drawing.Point(12, 21);
+            this.txtArquivo.Location = new System.Drawing.Point(9, 17);
+            this.txtArquivo.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.txtArquivo.Name = "txtArquivo";
-            this.txtArquivo.Size = new System.Drawing.Size(410, 22);
+            this.txtArquivo.Size = new System.Drawing.Size(308, 20);
             this.txtArquivo.TabIndex = 0;
-            this.txtArquivo.Text = "D:\\Desktop\\Meu\\TCC\\git\\SpeechSDK\\src\\SpeechSDK.Test.UI\\Audios\\Sidney\\audio_01.wav" +
-    "";
+            this.txtArquivo.Text = "D:\\Desktop\\Dev\\TCC\\SpeechSDK\\src\\SpeechSDK.Test.UI\\Audios\\Sidney\\audio_01.wav";
             // 
             // btnAnalizar
             // 
-            this.btnAnalizar.Location = new System.Drawing.Point(439, 21);
+            this.btnAnalizar.Location = new System.Drawing.Point(329, 17);
+            this.btnAnalizar.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.btnAnalizar.Name = "btnAnalizar";
-            this.btnAnalizar.Size = new System.Drawing.Size(75, 23);
+            this.btnAnalizar.Size = new System.Drawing.Size(56, 19);
             this.btnAnalizar.TabIndex = 1;
             this.btnAnalizar.Text = "Analizar";
             this.btnAnalizar.UseVisualStyleBackColor = true;
@@ -55,31 +56,36 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Location = new System.Drawing.Point(25, 65);
+            this.groupBox1.Location = new System.Drawing.Point(19, 53);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(469, 349);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox1.Size = new System.Drawing.Size(352, 284);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "groupBox1";
             // 
             // groupBox2
             // 
-            this.groupBox2.Location = new System.Drawing.Point(539, 75);
+            this.groupBox2.Location = new System.Drawing.Point(404, 61);
+            this.groupBox2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(200, 100);
+            this.groupBox2.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.groupBox2.Size = new System.Drawing.Size(150, 81);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "groupBox1";
             // 
             // FrmAudioPloter
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(600, 366);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnAnalizar);
             this.Controls.Add(this.txtArquivo);
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "FrmAudioPloter";
             this.Text = "FrmAudioPloter";
             this.ResumeLayout(false);
