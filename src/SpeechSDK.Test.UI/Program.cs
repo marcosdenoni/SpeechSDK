@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SpeechSDK.Test.UI.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,11 +15,24 @@ namespace SpeechSDK.Test.UI
         [STAThread]
         static void Main()
         {
+            try
+            {
+                SpeechConfig.Load();
+            }
+            catch (Exception ex)
+            {
+                if (MessageBox.Show("Não foi possivel carregar o config, deseja criar?", "Aviso", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    SpeechConfig.CreateConfiguration();
+                else
+                    return;
+            }
             //new PreparadorAudio().Teste();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FrmAudioPloter());
-            //Application.Run(new FrmTest());
+            //Application.Run(new FrmAudioPloter());
+            Application.Run(new FrmTest());
+
+            SpeechConfig.Save();
         }
     }
 }

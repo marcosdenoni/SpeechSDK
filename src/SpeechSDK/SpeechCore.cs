@@ -18,9 +18,17 @@ namespace SpeechSDK
         /// </summary>
         private Dictionary<Guid, AudioModel> _classes;
 
+        private ActivationNetwork activationNetwork;
+
+        private int msSegmentos;
+
+        private int tamanhoEntrada;
+
         public SpeechCore()
         {
             _classes = new Dictionary<Guid, AudioModel>();
+            msSegmentos = 100;
+            tamanhoEntrada = (msSegmentos / 10 + 1) * 13;
         }
 
         public void AdicionarModelo(AudioModel modelo)
@@ -31,20 +39,16 @@ namespace SpeechSDK
                 throw new ArgumentException("Modelo já cadastrado.");
         }
 
-        public void Treinar()
+        public double Treinar()
         {
-            int msSegmentos = 100;
-
-            int tamanhoEntrada = (msSegmentos / 10 + 1) * 13;//1 segundo = 100 valores MFCC, cada valor com 14 dados
-
             //var activationNetwork = new ActivationNetwork(new ThresholdFunction(), tamanhoEntrada, _classes.Count);
             //var supervisedLearning = new PerceptronLearning(activationNetwork);
 
-            var activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), tamanhoEntrada,  _classes.Count);
+            activationNetwork = new ActivationNetwork(new SigmoidFunction(0.5), tamanhoEntrada, _classes.Count);
             //var supervisedLearning = new PerceptronLearning(activationNetwork);
 
             var supervisedLearning = new BackPropagationLearning(activationNetwork);
-            supervisedLearning.LearningRate = 0.6;
+            supervisedLearning.LearningRate = 0.5;
 
             int indice = 0;
 
@@ -74,15 +78,49 @@ namespace SpeechSDK
             var entradaArray = entrada.ToArray();
             var saidaArray = saida.ToArray();
 
-            var resultado = supervisedLearning.RunEpoch(entradaArray, saidaArray);
+            return supervisedLearning.RunEpoch(entradaArray, saidaArray);
 
-            Testar(activationNetwork, msSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_02.wav");
-            Testar(activationNetwork, msSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
+            //var resultado = supervisedLearning.RunEpoch(entradaArray, saidaArray);
 
-            Testar(activationNetwork, msSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_03.wav");
-            Testar(activationNetwork, msSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
+            //Testar(activationNetwork, msSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_02.wav");
+            //Testar(activationNetwork, msSegmentos, @".\Audios\Giovanni", @".\Audios\Giovanni\audio_03.wav");
 
-            Testar(activationNetwork, msSegmentos, @".\Audios\Wellington", @".\Audios\Wellington\audio_03.wav");
+            //Testar(activationNetwork, msSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_03.wav");
+            //Testar(activationNetwork, msSegmentos, @".\Audios\Sidney", @".\Audios\Sidney\audio_04.wav");
+
+            //Testar(activationNetwork, msSegmentos, @".\Audios\Wellington", @".\Audios\Wellington\audio_03.wav");
+        }
+
+        public void Classificar(string arquivo, Action<string> writeLine, Action<string> write)
+        {
+            var caracteristicas = AudioModelHelper.ObterCaracteristicas(arquivo, msSegmentos);
+
+            writeLine($"Classes: {_classes.Count}");
+
+            foreach (var item in _classes)
+            {
+                write($"Classe: {item.Value.Descricao}, saida esperada: ");
+                ImprimirVetor(item.Value.SaidaEsperada, writeLine, write);
+            }
+
+            var media = new int[_classes.Count];
+
+            foreach (var item in caracteristicas)
+            {
+                var saida = activationNetwork.Compute(item);
+
+                var impressao = Imprimir(saida, writeLine, write);
+
+                for (int i = 0; i < _classes.Count; i++)
+                {
+                    media[i] += impressao[i];
+                }
+
+                ImprimirVetor(saida, writeLine, write);
+            }
+
+            Debug.Write("Média: ");
+            ImprimirVetor(media, writeLine, write);
         }
 
         private void Testar(ActivationNetwork activationNetwork, int inputCount, string baseCaminho, string arquivo)
@@ -91,42 +129,42 @@ namespace SpeechSDK
 
             Debug.Write($"{baseCaminho} Saida esperada: ");
 
-            ImprimirVetor(classe.Value.SaidaEsperada);
+            ImprimirVetor(classe.Value.SaidaEsperada, Console.WriteLine, Console.Write);
 
-            var teste2 = AudioModelHelper.ObterCaracteristicas(arquivo, inputCount);
+            var caracteristicas = AudioModelHelper.ObterCaracteristicas(arquivo, inputCount);
 
             var media = new int[_classes.Count];
 
-            foreach (var item in teste2)
+            foreach (var item in caracteristicas)
             {
                 var saida = activationNetwork.Compute(item);
 
                 //Debug.WriteLine($"'{saida[0]}', '{saida[1]}', '{saida[2]}'");
 
-                var impressao = Imprimir(saida);
+                var impressao = Imprimir(saida, Console.WriteLine, Console.Write);
 
                 for (int i = 0; i < _classes.Count; i++)
                 {
                     media[i] += impressao[i];
                 }
 
-                ImprimirVetor(saida);
+                ImprimirVetor(saida, Console.WriteLine, Console.Write);
             }
 
             Debug.Write("Média: ");
-            ImprimirVetor(media);
+            ImprimirVetor(media, Console.WriteLine, Console.Write);
         }
 
-        private void ImprimirVetor<T>(T[] vetor, bool pularLinha = true)
+        private void ImprimirVetor<T>(T[] vetor, Action<string> writeLine, Action<string> write, bool pularLinha = true)
         {
             foreach (var item in vetor)
-                Debug.Write($"{item}, ");
+                write($"{item}, ");
 
             if (pularLinha)
-                Debug.WriteLine("");
+                writeLine("");
         }
 
-        private int[] Imprimir(double[] vetor)
+        private int[] Imprimir(double[] vetor, Action<string> writeLine, Action<string> write)
         {
             int maior = 0;
             double valor = vetor[0];
@@ -144,9 +182,9 @@ namespace SpeechSDK
 
             var tmpVector = new int[vetor.Length];
             tmpVector[maior] = 1;
-            ImprimirVetor(tmpVector, false);
+            ImprimirVetor(tmpVector, writeLine, write, false);
 
-            Debug.Write($" | ");
+            write($" | ");
 
             return tmpVector;
         }

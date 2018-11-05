@@ -16,6 +16,8 @@ namespace SpeechSDK.Model
         /// </summary>
         public Guid IdentificadorModelo { get; private set; }
 
+        public string Descricao { get; set; }
+
         /// <summary>
         /// Arquivos de audio
         /// </summary>
